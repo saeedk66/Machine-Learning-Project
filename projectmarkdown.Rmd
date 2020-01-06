@@ -1,0 +1,110 @@
+---
+title: "Practical Machine Learning Project"
+author: "saeed"
+date: "05/01/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: [http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har] (see the section on the Weight Lifting Exercise Dataset).
+
+The goal of project is to predict the manner in which they did the exercise.
+
+## Data
+
+The training data for this project are available here:
+
+
+- [https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv]
+
+
+The test data are available here:
+
+- [https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv]
+
+```{r echo=FALSE}
+setwd("C:/Users/S.kh/Desktop/Coursera/Practical machine learning")
+```
+```{r}
+## Reading data
+training <- read.csv("./pml-training.csv", na.strings = c("","#DIV/0!","NA"))
+testing <- read.csv("./pml-testing.csv")
+```
+
+## Data cleaning
+
+Removing columns with more than 75% NA 
+
+```{r}
+training <- training[,colMeans(is.na(training)) <= .75]
+testing <- testing[,colMeans(is.na(testing)) <= .75]
+str(training)
+```
+Removing first 7 columns including username and time stamp.
+
+```{r}
+training <- training[,-c(1:7)]
+testing <- testing[,-c(1:7)]
+```
+
+## Partitioning training data set
+Splitting training data set into 70% training and 30% testing.
+
+```{r}
+library(caret)
+library(rattle)
+set.seed(2020)
+intrain <- createDataPartition(y= training$classe, p = 0.7 , list = F)
+trainingset <- training[intrain,]
+testingset <- training[-intrain,]
+```
+## Machine Learning Algorithms
+
+In this section we try to fit our model with different algorithms such as DT (Decision Tree) and RF (Random Forest).
+
+### Decision Tree
+
+```{r}
+## Decision Tree
+fit1 <- train(classe~. , data = trainingset, method = "rpart")
+fancyRpartPlot(fit1$finalModel)
+```
+
+Predicting the model on our testing set.
+
+```{r}
+predictfit1 <- predict(fit1, testingset)
+confusionMatrix(predictfit1, testingset$classe)
+```
+
+The accuracy of the model is about 49.69% and the estimate out of sample error is about 50.31 for DT.
+
+### Random Forest
+
+```{r cache=TRUE}
+fit2 <- train(classe~., data = trainingset, method = "rf", ntree = 200, trControl = trainControl(method = "cv",5))
+```
+
+Predicting the model on our testing set.
+
+```{r}
+predictfit2 <- predict(fit2, testingset)
+confusionMatrix(predictfit2,testingset$classe)
+```
+
+Clearly the Random Forest model is superior with 99.13% accuracy and the estimate out of sample error of 0.87%.
+
+## Predicting the manner of exercise on Test data set
+
+For this prediction we are going to use the random forest model.
+
+```{r}
+predictmanner <- predict(fit2, testing)
+predictmanner
+```
