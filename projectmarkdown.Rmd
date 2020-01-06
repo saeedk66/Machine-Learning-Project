@@ -2,7 +2,9 @@
 title: "Practical Machine Learning Project"
 author: "saeed"
 date: "05/01/2020"
-output: html_document
+output: 
+  html_document:
+    keep_md: true
 ---
 
 ```{r setup, include=FALSE}
@@ -32,7 +34,7 @@ The test data are available here:
 setwd("C:/Users/S.kh/Desktop/Coursera/Practical machine learning")
 ```
 ```{r}
-## Reading data
+## Reading data from working directory
 training <- read.csv("./pml-training.csv", na.strings = c("","#DIV/0!","NA"))
 testing <- read.csv("./pml-testing.csv")
 ```
